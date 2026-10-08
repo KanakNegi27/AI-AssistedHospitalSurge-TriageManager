@@ -5,8 +5,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* Sidebar */
-
 .sidebar {
   width: 230px;
   min-height: 100vh;
@@ -48,8 +46,6 @@
 .logout {
   margin-top: auto;
 }
-
-/* Main content */
 
 .main-content {
   flex: 1;
