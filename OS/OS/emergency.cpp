@@ -60,7 +60,7 @@ bool simulate(vector<Patient> &p, Resources res,
                p[i].ct == time)
             {
                 ended[i] = 1;
-                finished++;
+                finished+=1;
 
                 release(res, p[i]);
 
