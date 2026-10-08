@@ -48,7 +48,7 @@ void registerEmergency(vector<Patient>&list, int hospitalId)
     p.hospital=hospitalId;
     p.st=p.ct=p.tat=p.wt=0;
 
-    cout << "\nRegister Emergency Patient" << p.id << "\n";
+    cout << "\nRegister Emergency Patient:" << p.id << "\n";
     cout << "Name: ";
     cin >> p.name;
     cout << "Age: ";
