@@ -43,7 +43,7 @@ function roundRobinScheduling(processes,tq){
       queue.push(process);
     }
   }
-  return completed;
+  return comp;
 }
 module.exports={
   roundRobinScheduling:roundRobinScheduling
