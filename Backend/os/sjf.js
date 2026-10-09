@@ -23,10 +23,10 @@ function sjfScheduling(processes){
     process.turnaroundTime=process.completionTime-process.arrivalTime;
     process.waitingTime=process.turnaroundTime-process.burstTime;
     comp.push(process);
-    rem.splice(first,1);
+    rem.splice(shortest,1);
   }
   return comp;
 }
 module.exports={
-  fcfsScheduling:fcfsScheduling
+  sjfScheduling:sjfScheduling
 };
