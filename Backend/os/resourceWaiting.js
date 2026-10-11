@@ -1,46 +1,37 @@
+const waitingCases = [];
 
-let waitingCases=[];
-
-function addWaitingCase(emergencyCase){
-
-  if(!emergencyCase){
-
-    return "Invalid emergency case";
-
+function addWaitingCase(caseItem) {
+  if (!caseItem) {
+    throw new Error("caseItem is required");
   }
 
-  emergencyCase.state="WAITING";
-
-  waitingCases.push(emergencyCase);
-
-  return "Case added to resource waiting queue";
-
+  waitingCases.push(caseItem);
+  return waitingCases.length;
 }
 
-function getWaitingCases(){
-
+function getWaitingCases() {
   return [...waitingCases];
-
 }
 
-function removeWaitingCase(){
+function removeWaitingCase(caseId) {
+  const index = waitingCases.findIndex(
+    item => String(item.id) === String(caseId)
+  );
 
-  if(waitingCases.length===0){
-
+  if (index === -1) {
     return null;
-
   }
 
-  return waitingCases.shift();
-
+  return waitingCases.splice(index, 1)[0];
 }
 
-module.exports={
+function clearWaitingCases() {
+  waitingCases.length = 0;
+}
 
-  addWaitingCase:addWaitingCase,
-
-  getWaitingCases:getWaitingCases,
-
-  removeWaitingCase:removeWaitingCase
-
+module.exports = {
+  addWaitingCase,
+  getWaitingCases,
+  removeWaitingCase,
+  clearWaitingCases
 };
