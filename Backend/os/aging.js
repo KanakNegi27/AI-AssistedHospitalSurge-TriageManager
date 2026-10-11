@@ -1,34 +1,36 @@
 
-function applyAging(processes,currentTime,waitingLimit){
-
-  for(let i=0;i<processes.length;i++){
-
-    if(processes[i].state=='Ready'){
-
-      let waitingTime=currentTime-processes[i].arrivalTime;
-
-      if(waitingTime>=waitingLimit && !processes[i].agingApplied){
-
-        if(processes[i].priority>1){
-
-          processes[i].priority--;
-
-          processes[i].agingApplied=true;
-
-        }
-
-      }
-
-    }
-
+function applyAging(processes, currentTime, waitingLimit) {
+  if (!Number.isFinite(currentTime) || currentTime < 0) {
+    throw new Error("currentTime must be non-negative");
   }
 
-  return processes;
+  if (!Number.isFinite(waitingLimit) || waitingLimit <= 0) {
+    throw new Error("waitingLimit must be positive");
+  }
 
+  return processes.map(process => {
+    const updated = { ...process };
+
+    const isReady =
+      updated.state === "Ready" ||
+      updated.state === "NEW";
+
+    const waitingTime = currentTime - updated.arrivalTime;
+
+    if (
+      isReady &&
+      waitingTime >= waitingLimit &&
+      updated.priority < 5
+    ) {
+      updated.priority = Math.min(
+        5,
+        updated.priority + 1
+      );
+      updated.lastAgingTime = currentTime;
+    }
+
+    return updated;
+  });
 }
 
-module.exports={
-
-  applyAging:applyAging
-
-};
+module.exports = { applyAging };

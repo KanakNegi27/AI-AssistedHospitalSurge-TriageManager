@@ -1,42 +1,26 @@
+let lockQueue = Promise.resolve();
 
-let resourceBusy=false;
+async function accessResource(callback) {
+  if (typeof callback !== "function") {
+    throw new TypeError("callback must be a function");
+  }
 
-let waitingQueue=Promise.resolve();
+  let release;
 
-async function accessResource(allocationFunction){
-
-  let releaseLock;
-
-  let currentLock=new Promise(resolve=>{
-
-    releaseLock=resolve;
-
+  const currentLock = new Promise(resolve => {
+    release = resolve;
   });
 
-  let previousLock=waitingQueue;
-
-  waitingQueue=waitingQueue.then(()=>currentLock);
+  const previousLock = lockQueue;
+  lockQueue = previousLock.then(() => currentLock);
 
   await previousLock;
 
-  resourceBusy=true;
-
-  try{
-
-    return await allocationFunction();
-
-  }finally{
-
-    resourceBusy=false;
-
-    releaseLock();
-
+  try {
+    return await callback();
+  } finally {
+    release();
   }
-
 }
 
-module.exports={
-
-  accessResource:accessResource
-
-};
+module.exports = { accessResource };

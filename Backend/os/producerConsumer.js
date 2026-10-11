@@ -1,52 +1,50 @@
+const buffer = [];
+const bufferSize = 5;
 
-let buffer=[];
-
-let bufferSize=5;
-
-function produceCase(emergencyCase){
-
-  if(!emergencyCase){
-
-    return "Invalid emergency case";
-
+function produceCase(caseItem) {
+  if (buffer.length >= bufferSize) {
+    return {
+      success: false,
+      message: "Queue is full"
+    };
   }
 
-  if(buffer.length>=bufferSize){
+  buffer.push(caseItem);
 
-    return "Queue is full";
-
-  }
-
-  buffer.push(emergencyCase);
-
-  return "Emergency case added to queue";
-
+  return {
+    success: true,
+    message: "Emergency case added to queue"
+  };
 }
 
-function consumeCase(){
-
-  if(buffer.length===0){
-
-    return "Queue is empty";
-
+function consumeCase() {
+  if (buffer.length === 0) {
+    return {
+      success: false,
+      message: "Queue is empty",
+      item: null
+    };
   }
 
-  return buffer.shift();
-
+  return {
+    success: true,
+    message: "Emergency case removed from queue",
+    item: buffer.shift()
+  };
 }
 
-function getBuffer(){
-
+function getBuffer() {
   return [...buffer];
-
 }
 
-module.exports={
+function clearBuffer() {
+  buffer.length = 0;
+}
 
-  produceCase:produceCase,
-
-  consumeCase:consumeCase,
-
-  getBuffer:getBuffer
-
+module.exports = {
+  produceCase,
+  consumeCase,
+  getBuffer,
+  clearBuffer,
+  bufferSize
 };
