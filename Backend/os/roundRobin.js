@@ -1,116 +1,93 @@
-
-function roundRobinScheduling(processes,tq){
-
-  if(!Number.isInteger(tq) || tq<=0){
-
-    throw new Error("Time quantum must be a positive integer");
-
+function roundRobin(processes, timeQuantum) {
+  if (!Number.isInteger(timeQuantum) || timeQuantum <= 0) {
+    throw new Error("timeQuantum must be a positive integer");
   }
 
-  let queue=[];
+  const jobs = processes
+    .map((p, index) => ({
+      ...p,
+      originalIndex: index,
+      remainingTime: p.remainingTime ?? p.burstTime,
+      state: "NEW",
+      startTime: null,
+      completionTime: null,
+      waitingTime: 0,
+      responseTime: null
+    }))
+    .sort((a, b) =>
+      a.arrivalTime - b.arrivalTime ||
+      a.originalIndex - b.originalIndex
+    );
 
-  let comp=[];
+  const readyQueue = [];
+  const completed = [];
+  let time = 0;
+  let next = 0;
 
-  let time=0;
-
-  let rem=processes.slice();
-
-  for(let i=0;i<rem.length;i++){
-
-    if(rem[i].remainingTime===undefined){
-
-      rem[i].remainingTime=rem[i].burstTime;
-
+  while (completed.length < jobs.length) {
+    while (
+      next < jobs.length &&
+      jobs[next].arrivalTime <= time
+    ) {
+      jobs[next].state = "Ready";
+      readyQueue.push(jobs[next]);
+      next++;
     }
 
-  }
-
-  while(rem.length>0 || queue.length>0){
-
-    for(let i=0;i<rem.length;i++){
-
-      if(rem[i].arrivalTime<=time){
-
-        queue.push(rem[i]);
-
-        rem.splice(i,1);
-
-        i--;
-
+    if (readyQueue.length === 0) {
+      if (next < jobs.length) {
+        time = Math.max(time, jobs[next].arrivalTime);
+        continue;
       }
-
+      break;
     }
 
-    if(queue.length==0){
+    const process = readyQueue.shift();
 
-      time++;
+    process.state = "Running";
 
-      continue;
-
+    if (process.startTime === null) {
+      process.startTime = time;
+      process.responseTime = time - process.arrivalTime;
     }
 
-    let process=queue.shift();
+    const executionTime = Math.min(
+      timeQuantum,
+      process.remainingTime
+    );
 
-    process.state="Running";
+    time += executionTime;
+    process.remainingTime -= executionTime;
 
-    let runTime;
-
-    if(process.remainingTime<tq){
-
-      runTime=process.remainingTime;
-
-    }else{
-
-      runTime=tq;
-
+    while (
+      next < jobs.length &&
+      jobs[next].arrivalTime <= time
+    ) {
+      jobs[next].state = "Ready";
+      readyQueue.push(jobs[next]);
+      next++;
     }
 
-    time+=runTime;
-
-    process.remainingTime=process.remainingTime-runTime;
-
-    for(let i=0;i<rem.length;i++){
-
-      if(rem[i].arrivalTime<=time){
-
-        queue.push(rem[i]);
-
-        rem.splice(i,1);
-
-        i--;
-
-      }
-
+    if (process.remainingTime === 0) {
+      process.completionTime = time;
+      process.turnaroundTime =
+        time - process.arrivalTime;
+      process.waitingTime =
+        process.turnaroundTime - process.burstTime;
+      process.state = "Completed";
+      completed.push(process);
+    } else {
+      process.state = "Ready";
+      readyQueue.push(process);
     }
-
-    if(process.remainingTime==0){
-
-      process.state="Completed";
-
-      process.completionTime=time;
-
-      process.turnaroundTime=process.completionTime-process.arrivalTime;
-
-      process.waitingTime=process.turnaroundTime-process.burstTime;
-
-      comp.push(process);
-
-    }else{
-
-      process.state="Ready";
-
-      queue.push(process);
-
-    }
-
   }
 
-  return comp;
-
+  return completed
+    .sort((a, b) =>
+      a.completionTime - b.completionTime ||
+      a.originalIndex - b.originalIndex
+    )
+    .map(({ originalIndex, ...process }) => process);
 }
 
-module.exports={
-
-  roundRobinScheduling:roundRobinScheduling
-
-};
+module.exports = { roundRobin };
