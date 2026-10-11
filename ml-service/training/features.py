@@ -1,17 +1,21 @@
 from pathlib import Path
 import pandas as pd
 
+PROJECT_ROOT=Path(__file__).resolve().parents[2]
+DATASET_PATH=PROJECT_ROOT / "Sample-Dataset.csv"
+
 def load_dataset():
-    path=Path()
+    path=DATASET_PATH
     if not path.exists():
         raise FileNotFoundError(f"Dataset not found: {path}")
     df=pd.read_csv(path)
     df.columns=(
-        df.columns.str.strip().str.lower().str.replace(" ","_",regex=False)
+        df.columns.str.strip().str.lower().str.replace(" ", "_", regex=False)
     )
     if df.empty:
         raise ValueError("The dataset is empty")
     return df
+
 
 def clean_dataset(df):
     df=df.copy()
