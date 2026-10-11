@@ -1,15 +1,42 @@
+
 let resourceBusy=false;
-async function accessResource(allocationFunction) {
-  while(resourceBusy){
-    await new Promise(resolve=>setTimeout(resolve,100));
-  }
+
+let waitingQueue=Promise.resolve();
+
+async function accessResource(allocationFunction){
+
+  let releaseLock;
+
+  let currentLock=new Promise(resolve=>{
+
+    releaseLock=resolve;
+
+  });
+
+  let previousLock=waitingQueue;
+
+  waitingQueue=waitingQueue.then(()=>currentLock);
+
+  await previousLock;
+
   resourceBusy=true;
+
   try{
+
     return await allocationFunction();
+
   }finally{
+
     resourceBusy=false;
+
+    releaseLock();
+
   }
+
 }
+
 module.exports={
+
   accessResource:accessResource
+
 };
