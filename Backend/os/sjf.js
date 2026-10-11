@@ -1,32 +1,47 @@
-function sjfScheduling(processes){
-  let comp=[];
-  let rem=processes.slice();
-  let time=0;
-  while(rem.length>0){
-    let shortest=-1;
-    for(let i=0;i<rem.length;i++){
-      if(rem[i].arrivalTime<=time){
-        if(shortest==-1 || rem[i].burstTime<rem[shortest].burstTime){
-          shortest=i;
-        }
-      }
-    }
-    if(shortest==-1){
-      time++;
+function sjf(processes) {
+  const pending = processes.map(p => ({
+    ...p,
+    remainingTime: p.remainingTime ?? p.burstTime,
+    state: p.state ?? "NEW"
+  }));
+
+  const completed = [];
+  let time = 0;
+
+  while (pending.length > 0) {
+    const available = pending
+      .filter(p => p.arrivalTime <= time)
+      .sort((a, b) =>
+        a.burstTime - b.burstTime ||
+        a.arrivalTime - b.arrivalTime
+      );
+
+    if (available.length === 0) {
+      time = Math.min(...pending.map(p => p.arrivalTime));
       continue;
     }
-    let process=rem[shortest];
-    process.state="Running";
-    time+=process.burstTime;
-    process.state="Completed";
-    process.completionTime=time;
-    process.turnaroundTime=process.completionTime-process.arrivalTime;
-    process.waitingTime=process.turnaroundTime-process.burstTime;
-    comp.push(process);
-    rem.splice(shortest,1);
+
+    const process = available[0];
+    const index = pending.indexOf(process);
+
+    process.state = "Running";
+    process.startTime = time;
+    process.responseTime = time - process.arrivalTime;
+    process.waitingTime = time - process.arrivalTime;
+
+    time += process.burstTime;
+
+    process.remainingTime = 0;
+    process.completionTime = time;
+    process.turnaroundTime =
+      process.completionTime - process.arrivalTime;
+    process.state = "Completed";
+
+    completed.push(process);
+    pending.splice(index, 1);
   }
-  return comp;
+
+  return completed;
 }
-module.exports={
-  sjfScheduling:sjfScheduling
-};
+
+module.exports = { sjf };
