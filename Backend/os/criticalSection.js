@@ -1,14 +1,13 @@
-
 const { accessResource } = require("./synchronization");
 
-async function criticalSection(allocationFunction){
+async function criticalSection(allocationFunction) {
+  if (typeof allocationFunction !== "function") {
+    throw new TypeError(
+      "allocationFunction must be a function"
+    );
+  }
 
-  return await accessResource(allocationFunction);
-
+  return accessResource(allocationFunction);
 }
 
-module.exports={
-
-  criticalSection:criticalSection
-
-};
+module.exports = { criticalSection };
