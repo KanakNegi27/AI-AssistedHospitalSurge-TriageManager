@@ -1,32 +1,46 @@
-function fcfsScheduling(processes){
-  let comp=[];
-  let rem=processes.slice();
-  let time=0;
-  while(rem.length>0){
-    let first=-1;
-    for(let i=0;i<rem.length;i++){
-      if(rem[i].arrivalTime<=time){
-        if(first==-1 || rem[i].arrivalTime<rem[first].arrivalTime){
-          first=i;
-        }
-      }
-    }
-    if(first==-1){
-      time++;
+function fcfs(processes) {
+  const pending = processes.map(p => ({
+    ...p,
+    remainingTime: p.remainingTime ?? p.burstTime,
+    state: p.state ?? "NEW"
+  }));
+
+  const completed = [];
+  let time = 0;
+
+  while (pending.length > 0) {
+    const available = pending
+      .filter(p => p.arrivalTime <= time)
+      .sort((a, b) =>
+        a.arrivalTime - b.arrivalTime
+      );
+
+    if (available.length === 0) {
+      time = Math.min(...pending.map(p => p.arrivalTime));
       continue;
     }
-    let process=rem[first];
-    process.state="Running";
-    time+=process.burstTime;
-    process.state="Completed";
-    process.completionTime=time;
-    process.turnaroundTime=process.completionTime-process.arrivalTime;
-    process.waitingTime=process.turnaroundTime-process.burstTime;
-    comp.push(process);
-    rem.splice(first,1);
+
+    const process = available[0];
+    const index = pending.indexOf(process);
+
+    process.state = "Running";
+    process.startTime = time;
+    process.responseTime = time - process.arrivalTime;
+    process.waitingTime = time - process.arrivalTime;
+
+    time += process.burstTime;
+
+    process.remainingTime = 0;
+    process.completionTime = time;
+    process.turnaroundTime =
+      process.completionTime - process.arrivalTime;
+    process.state = "Completed";
+
+    completed.push(process);
+    pending.splice(index, 1);
   }
-  return comp;
+
+  return completed;
 }
-module.exports={
-  fcfsScheduling:fcfsScheduling
-};
+
+module.exports = { fcfs };
