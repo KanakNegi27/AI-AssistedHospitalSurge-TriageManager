@@ -1,61 +1,47 @@
+function priorityScheduling(processes) {
+  const pending = processes.map(p => ({
+    ...p,
+    remainingTime: p.remainingTime ?? p.burstTime,
+    state: p.state ?? "NEW"
+  }));
 
-function priorityScheduling(processes){
+  const completed = [];
+  let time = 0;
 
-  let comp=[];
+  while (pending.length > 0) {
+    const available = pending
+      .filter(p => p.arrivalTime <= time)
+      .sort((a, b) =>
+        b.priority - a.priority ||
+        a.arrivalTime - b.arrivalTime
+      );
 
-  let rem=processes.slice();
-
-  let time=0;
-
-  while(rem.length>0){
-
-    let highest=-1;
-
-    for(let i=0;i<rem.length;i++){
-
-      if(rem[i].arrivalTime<=time){
-
-        if(highest==-1 || rem[i].priority<rem[highest].priority){
-          highest=i;
-        }
-      }
-
-    }
-
-    if(highest==-1){
-
-      time++;
-
+    if (available.length === 0) {
+      time = Math.min(...pending.map(p => p.arrivalTime));
       continue;
-
     }
 
-    let process=rem[highest];
+    const process = available[0];
+    const index = pending.indexOf(process);
 
-    process.state="Running";
+    process.state = "Running";
+    process.startTime = time;
+    process.responseTime = time - process.arrivalTime;
+    process.waitingTime = time - process.arrivalTime;
 
-    time+=process.burstTime;
+    time += process.burstTime;
 
-    process.state="Completed";
+    process.remainingTime = 0;
+    process.completionTime = time;
+    process.turnaroundTime =
+      process.completionTime - process.arrivalTime;
+    process.state = "Completed";
 
-    process.completionTime=time;
-
-    process.turnaroundTime=process.completionTime-process.arrivalTime;
-
-    process.waitingTime=process.turnaroundTime-process.burstTime;
-
-    comp.push(process);
-
-    rem.splice(highest,1);
-
+    completed.push(process);
+    pending.splice(index, 1);
   }
 
-  return comp;
-
+  return completed;
 }
 
-module.exports={
-
-  priorityScheduling:priorityScheduling
-
-};
+module.exports = { priorityScheduling };
